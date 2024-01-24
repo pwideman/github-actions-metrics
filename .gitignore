@@ -21,6 +21,6 @@
 go.work
 
 # Local/debug settings
-local.env
+local.*
 __debug*
 .vscode

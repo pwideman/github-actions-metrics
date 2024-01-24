@@ -3,5 +3,5 @@ server:
     port: 8080
 
 logging:
-    pretty: true
-    level: debug
+    pretty: false
+    level: info
