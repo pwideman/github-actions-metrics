@@ -13,25 +13,27 @@ import (
 )
 
 func main() {
-	// TODO: get config from files (yaml?)
-	config := baseapp.HTTPConfig{
-		Address: "127.0.0.1",
-		Port:    3000,
+	configFilename := os.Getenv("CONFIG_FILE")
+	if configFilename == "" {
+		configFilename = "config.yaml"
 	}
-	loggingConfig := baseapp.LoggingConfig{
-		Pretty: true,
-		Level:  "trace",
+	config, err := ReadConfig(configFilename)
+	if err != nil {
+		panic(err)
 	}
 
-	logger := baseapp.NewLogger(loggingConfig)
+	logger := baseapp.NewLogger(config.Logging)
 
 	// create a server with default options and no metrics prefix
-	server, err := baseapp.NewServer(config, baseapp.DefaultParams(logger, "")...)
+	server, err := baseapp.NewServer(config.Server, baseapp.DefaultParams(logger, "")...)
 	if err != nil {
 		panic(err)
 	}
 
 	secret := os.Getenv("GH_WEBHOOK_SECRET")
+	if secret == "" {
+		panic("GH_WEBHOOK_SECRET not set")
+	}
 	handle := githubevents.New(secret)
 	// add callbacks
 	handle.OnWorkflowRunEventAny(

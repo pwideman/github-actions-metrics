@@ -7,7 +7,9 @@ require (
 	github.com/google/go-github/v58 v58.0.0
 	github.com/palantir/go-baseapp v0.5.2
 	github.com/palantir/go-githubapp v0.22.0
+	github.com/pkg/errors v0.9.1
 	goji.io v2.0.2+incompatible
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -22,7 +24,6 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/rs/zerolog v1.31.0 // indirect
