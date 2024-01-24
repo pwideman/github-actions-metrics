@@ -5,11 +5,15 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/bluekeyes/hatpear"
 	"github.com/cbrgm/githubevents/githubevents"
 	"github.com/google/go-github/v58/github"
 	"github.com/palantir/go-baseapp/baseapp"
 	"github.com/palantir/go-githubapp/githubapp"
 	"goji.io/pat"
+
+	"github.com/pwideman/github-actions-metrics/internal/config"
+	"github.com/pwideman/github-actions-metrics/internal/errors"
 )
 
 func main() {
@@ -17,7 +21,7 @@ func main() {
 	if configFilename == "" {
 		configFilename = "config.yaml"
 	}
-	config, err := ReadConfig(configFilename)
+	config, err := config.ReadConfig(configFilename)
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +42,11 @@ func main() {
 	// add callbacks
 	handle.OnWorkflowRunEventAny(
 		func(deliveryID string, eventName string, event *github.WorkflowRunEvent) error {
-			logger.Info().Msgf("Workflow run event of type %s", *event.WorkflowRun.Status)
+			workflowRun := event.GetWorkflowRun()
+			if workflowRun == nil {
+				return errors.NewHTTPError("workflow run event without workflow run", 400)
+			}
+			logger.Info().Msgf("Workflow run event of type '%s'", *workflowRun.Status)
 			j, _ := json.MarshalIndent(event, "", "  ")
 			logger.Trace().Msg(string(j))
 			return nil
@@ -46,12 +54,8 @@ func main() {
 	)
 
 	// register handlers
-	server.Mux().Handle(pat.Post(githubapp.DefaultWebhookRoute), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := handle.HandleEventRequest(r)
-		if err != nil {
-			// TODO: set HTTP response code?
-			logger.Error().Err(err).Msg("error handling event request")
-		}
+	server.Mux().Handle(pat.Post(githubapp.DefaultWebhookRoute), hatpear.TryFunc(func(w http.ResponseWriter, r *http.Request) error {
+		return handle.HandleEventRequest(r)
 	}))
 
 	// start the server (blocking)
