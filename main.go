@@ -32,7 +32,7 @@ func main() {
 
 	secret := os.Getenv("GH_WEBHOOK_SECRET")
 	if secret == "" {
-		panic("GH_WEBHOOK_SECRET not set")
+		logger.Warn().Msg("GH_WEBHOOK_SECRET not set, will not validate webhook requests")
 	}
 	handle := githubevents.New(secret)
 	// add callbacks
@@ -55,5 +55,8 @@ func main() {
 	}))
 
 	// start the server (blocking)
-	server.Start()
+	err = server.Start()
+	if err != nil {
+		panic(err)
+	}
 }
